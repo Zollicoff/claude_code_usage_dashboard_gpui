@@ -17,8 +17,8 @@ fn main() {
         // Set up window bounds - larger size for dashboard
         let bounds = Bounds::centered(None, size(px(1200.0), px(800.0)), cx);
         
-        // Create the main window
-        cx.open_window(
+        // Create the main window with proper window management
+        let _window = cx.open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 titlebar: Some(TitlebarOptions {
@@ -26,6 +26,8 @@ fn main() {
                     appears_transparent: false,
                     traffic_light_position: None,
                 }),
+                // Set window to be focusable and able to become key window
+                is_movable: true,
                 ..Default::default()
             },
             |_window, cx| {
@@ -33,6 +35,11 @@ fn main() {
             }
         )
         .unwrap();
+        
+        // Handle application quit properly
+        let _quit_subscription = cx.on_app_quit(|_| async move {
+            println!("🔴 Application quit requested");
+        });
         
         // Activate the application
         cx.activate(true);
