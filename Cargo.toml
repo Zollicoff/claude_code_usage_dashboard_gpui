@@ -1,24 +1,24 @@
 [package]
-name = "usage-dashboard-gpui"
+name = "claude-code-usage-dashboard-gpui"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name"]
-description = "A high-performance usage analytics dashboard built with GPUI"
+description = "A high-performance Claude Code usage analytics dashboard built with GPUI"
 license = "MIT"
-repository = "https://github.com/yourusername/usage-dashboard-gpui"
+repository = "https://github.com/yourusername/claude-code-usage-dashboard-gpui"
 
 [[bin]]
-name = "usage-dashboard-gpui"
+name = "claude-code-usage-dashboard-gpui"
 path = "src/main.rs"
 
 [package.metadata.bundle]
-name = "Claude Usage Dashboard"
-identifier = "com.claude.usage-dashboard"
+name = "Claude Code Usage Dashboard"
+identifier = "com.claude.code-usage-dashboard"
 version = "0.1.0"
 copyright = "Copyright (c) 2025"
 category = "DeveloperTool"
-short_description = "Analytics dashboard for Claude usage tracking"
-long_description = "A high-performance analytics dashboard for tracking Claude AI usage, cost analysis, and project insights built with Rust and GPUI."
+short_description = "Analytics dashboard for Claude Code usage tracking"
+long_description = "A high-performance analytics dashboard for tracking Claude Code usage, cost analysis, and project insights built with Rust and GPUI."
 icon = ["src/images/AppIcon.icns"]
 
 [dependencies]

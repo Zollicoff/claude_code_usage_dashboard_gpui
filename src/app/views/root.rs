@@ -474,7 +474,7 @@ impl RootView {
                     .text_2xl()
                     .font_weight(FontWeight::BOLD)
                     .text_color(theme.text_accent)
-                    .child("Claude Usage Dashboard"),
+                    .child("Claude Code Usage Dashboard"),
             )
             .child(
                 // Right side: Status indicator and theme toggle

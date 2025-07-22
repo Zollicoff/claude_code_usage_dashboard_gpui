@@ -25,7 +25,7 @@ impl ThemeSettings {
     /// Get the settings file path
     fn settings_path() -> anyhow::Result<PathBuf> {
         let home_dir = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
-        let config_dir = home_dir.join(".config").join("usage-dashboard");
+        let config_dir = home_dir.join(".config").join("claude-code-usage-dashboard");
         fs::create_dir_all(&config_dir)?;
         Ok(config_dir.join("theme.json"))
     }

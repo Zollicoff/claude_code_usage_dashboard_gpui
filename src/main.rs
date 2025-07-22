@@ -8,7 +8,7 @@ use gpui::*;
 use app::views::root::RootView;
 
 fn main() {
-    println!("🎯 Initializing Usage Dashboard (GPUI)...");
+    println!("🎯 Initializing Claude Code Usage Dashboard (GPUI)...");
     
     // Initialize GPUI application
     Application::new().run(|cx: &mut App| {
@@ -22,7 +22,7 @@ fn main() {
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 titlebar: Some(TitlebarOptions {
-                    title: Some("Usage Dashboard".into()),
+                    title: Some("Claude Code Usage Dashboard".into()),
                     appears_transparent: false,
                     traffic_light_position: None,
                 }),
@@ -44,6 +44,6 @@ fn main() {
         // Activate the application
         cx.activate(true);
         
-        println!("✅ Usage Dashboard started successfully!");
+        println!("✅ Claude Code Usage Dashboard started successfully!");
     });
 }
