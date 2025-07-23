@@ -759,6 +759,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "claude-code-usage-dashboard-gpui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dirs 5.0.1",
+ "gpui",
+ "serde",
+ "serde_json",
+ "tokio",
+ "walkdir",
+]
+
+[[package]]
 name = "cocoa"
 version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4968,20 +4982,6 @@ dependencies = [
  "idna",
  "percent-encoding",
  "serde",
-]
-
-[[package]]
-name = "usage-dashboard-gpui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "dirs 5.0.1",
- "gpui",
- "serde",
- "serde_json",
- "tokio",
- "walkdir",
 ]
 
 [[package]]

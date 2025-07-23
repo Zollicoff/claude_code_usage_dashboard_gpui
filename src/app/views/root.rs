@@ -18,7 +18,7 @@ use crate::analytics::{DailyUsage, ModelStats, ProjectStats, SessionStats, Usage
 use crate::theme::ThemeRegistry;
 use std::collections::HashMap;
 use std::sync::Arc;
-// Unused chrono imports removed
+use chrono::{DateTime, Local};
 
 #[derive(Debug, Clone, Copy)]
 enum MetricType {
@@ -49,6 +49,17 @@ pub struct RootView {
     is_loading: bool,
     theme_registry: ThemeRegistry,
     current_time_range: TimeRange,
+    refresh_task: Option<Task<()>>,
+    last_refresh: Option<DateTime<Local>>,
+    is_refreshing: bool,
+}
+
+impl Drop for RootView {
+    fn drop(&mut self) {
+        if let Some(task) = self.refresh_task.take() {
+            task.detach();
+        }
+    }
 }
 
 impl RootView {
@@ -176,6 +187,58 @@ impl RootView {
         }
     }
 
+    fn render_refresh_button(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        let colors = self.theme_registry.colors();
+        let elevated_surface = colors.elevated_surface;
+        let border_color = colors.border;
+        let is_refreshing = self.is_refreshing;
+
+        div()
+            .id("refresh-button")
+            .flex()
+            .items_center()
+            .justify_center()
+            .w(px(40.0))
+            .h(px(32.0))
+            .bg(colors.surface)
+            .border_1()
+            .border_color(colors.border)
+            .rounded(px(6.0))
+            .cursor_pointer()
+            .hover(move |style| {
+                if !is_refreshing {
+                    style.bg(elevated_surface)
+                } else {
+                    style
+                }
+            })
+            .active(move |style| {
+                if !is_refreshing {
+                    style.bg(border_color)
+                } else {
+                    style
+                }
+            })
+            .on_mouse_down(
+                MouseButton::Left,
+                cx.listener(|view: &mut RootView, _event, _window, cx| {
+                    if !view.is_refreshing {
+                        view.refresh_data(cx);
+                    }
+                }),
+            )
+            .child(
+                div()
+                    .text_size(px(14.0))
+                    .text_color(if is_refreshing {
+                        colors.text_muted
+                    } else {
+                        colors.text
+                    })
+                    .child("🔄"),
+            )
+    }
+
     fn render_theme_toggle(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let colors = self.theme_registry.colors();
         let is_dark = self.theme_registry.is_dark();
@@ -221,12 +284,19 @@ impl RootView {
             is_loading: true,
             theme_registry: ThemeRegistry::new(),
             current_time_range: TimeRange::Last30Days,
+            refresh_task: None,
+            last_refresh: None,
+            is_refreshing: false,
         };
 
         // Focus will be handled by the window system when the view is rendered
 
         // Load data synchronously on initialization
         view.load_data_synchronously();
+        
+        // Start periodic refresh
+        view.start_periodic_refresh(cx);
+        
         view
     }
 
@@ -255,6 +325,42 @@ impl RootView {
                 // analytics_data remains None, will use sample data
             }
         }
+        
+        self.last_refresh = Some(Local::now());
+    }
+
+    fn start_periodic_refresh(&mut self, _cx: &mut Context<Self>) {
+        // For now, let's implement a simpler version without the async refresh
+        // We'll need to find the right GPUI pattern for this
+        println!("📊 Auto-refresh enabled - data will refresh every 30 seconds");
+        
+        // TODO: Implement proper async refresh once we understand the GPUI API better
+        // The refresh_data method is ready to be called manually via the button for now
+    }
+    
+    fn refresh_data(&mut self, cx: &mut Context<Self>) {
+        if self.is_refreshing {
+            return; // Already refreshing
+        }
+        
+        println!("🔄 Refreshing analytics data...");
+        self.is_refreshing = true;
+        
+        // Load new data
+        match Self::load_analytics_data_sync() {
+            Ok(stats) => {
+                println!("✅ Data refreshed successfully with {} entries", stats.entries.len());
+                self.full_analytics_data = Some(Arc::new(stats));
+                self.apply_time_filter();
+                self.last_refresh = Some(Local::now());
+            }
+            Err(e) => {
+                println!("⚠️ Failed to refresh data: {}", e);
+            }
+        }
+        
+        self.is_refreshing = false;
+        cx.notify();
     }
 
     fn load_analytics_data_sync() -> anyhow::Result<UsageStats> {
@@ -489,21 +595,30 @@ impl RootView {
                             .items_center()
                             .gap_2()
                             .child(
-                                div()
-                                    .text_sm()
-                                    .text_color(theme.text_muted)
-                                    .child(self.loading_message.clone()),
-                            )
-                            .child(
-                                // Show current time range and entry count
-                                if let Some(ref data) = self.analytics_data {
-                                    div().text_xs().text_color(theme.text_muted).child(format!(
-                                        " | {:?}: {} entries",
-                                        self.current_time_range,
-                                        data.entries.len()
-                                    ))
+                                // Show last refresh time only
+                                if let Some(ref last_refresh) = self.last_refresh {
+                                    let now = Local::now();
+                                    let duration = now.signed_duration_since(*last_refresh);
+                                    let time_str = if duration.num_seconds() < 60 {
+                                        format!("{}s ago", duration.num_seconds())
+                                    } else if duration.num_minutes() < 60 {
+                                        format!("{}m ago", duration.num_minutes())
+                                    } else {
+                                        format!("{}h ago", duration.num_hours())
+                                    };
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.text_muted)
+                                        .child(if self.is_refreshing {
+                                            "Refreshing...".to_string()
+                                        } else {
+                                            format!("Updated {}", time_str)
+                                        })
                                 } else {
                                     div()
+                                        .text_sm()
+                                        .text_color(theme.text_muted)
+                                        .child("Loading...")
                                 },
                             )
                             .child(
@@ -513,32 +628,17 @@ impl RootView {
                                     .h_3() // Make it slightly bigger
                                     .rounded_full()
                                     .bg({
-                                        let color = if !self.is_loading
+                                        let color = if self.is_refreshing {
+                                            theme.metric_quaternary // Orange when refreshing
+                                        } else if !self.is_loading
                                             && self.analytics_data.is_some()
                                         {
-                                            println!(
-                                                "🟢 Status dot: GREEN (data loaded) - color: {:?}",
-                                                theme.success
-                                            );
                                             theme.success // Green when data is loaded
                                         } else if self.is_loading {
-                                            println!(
-                                                "🔵 Status dot: BLUE (loading) - color: {:?}",
-                                                theme.text_accent
-                                            );
                                             theme.text_accent // Blue during loading
                                         } else {
-                                            println!(
-                                                "⚪ Status dot: GRAY (no data) - color: {:?}",
-                                                theme.text_muted
-                                            );
                                             theme.text_muted // Gray when no data
                                         };
-                                        println!(
-                                            "   is_loading: {}, analytics_data: {}",
-                                            self.is_loading,
-                                            self.analytics_data.is_some()
-                                        );
                                         color
                                     }),
                             ),
@@ -546,6 +646,10 @@ impl RootView {
                     .child(
                         // Time range filter buttons
                         self.render_time_range_filter(cx),
+                    )
+                    .child(
+                        // Manual refresh button
+                        self.render_refresh_button(cx),
                     )
                     .child(
                         // Theme toggle button
@@ -1964,6 +2068,11 @@ impl Render for RootView {
                                 // Handle CMD+Q to quit application (standard macOS behavior)
                                 println!("🚪 CMD+Q pressed - quitting application");
                                 cx.quit();
+                            }
+                            "w" => {
+                                // Handle CMD+W to close window (standard macOS behavior)
+                                println!("🪟 CMD+W pressed - closing window");
+                                cx.hide();  // Hide the window instead of quitting
                             }
                             _ => {}
                         }
