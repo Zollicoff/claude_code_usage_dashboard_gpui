@@ -1,24 +1,24 @@
 [package]
-name = "claude-code-usage-dashboard-gpui"
+name = "propstream-pipedrive-integration"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name"]
-description = "A high-performance Claude Code usage analytics dashboard built with GPUI"
+description = "Automated PropStream to Pipedrive lead integration system"
 license = "MIT"
-repository = "https://github.com/yourusername/claude-code-usage-dashboard-gpui"
+repository = "https://github.com/yourusername/propstream-pipedrive-integration"
 
 [[bin]]
-name = "claude-code-usage-dashboard-gpui"
+name = "propstream-pipedrive-integration"
 path = "src/main.rs"
 
 [package.metadata.bundle]
-name = "Claude Code Usage Dashboard"
-identifier = "com.claude.code-usage-dashboard"
+name = "PropStream Pipedrive Integration"
+identifier = "com.propstream.pipedrive-integration"
 version = "0.1.0"
 copyright = "Copyright (c) 2025"
-category = "DeveloperTool"
-short_description = "Analytics dashboard for Claude Code usage tracking"
-long_description = "A high-performance analytics dashboard for tracking Claude Code usage, cost analysis, and project insights built with Rust and GPUI."
+category = "BusinessTool"
+short_description = "Automated real estate lead integration"
+long_description = "Automated integration system that pulls qualified property leads from PropStream and syncs them to Pipedrive CRM with intelligent filtering and duplicate detection."
 icon = ["src/images/AppIcon.icns"]
 
 [dependencies]
@@ -27,7 +27,15 @@ chrono = { version = "0.4", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 dirs = "5.0"
-walkdir = "2.0"
 anyhow = "1.0"
 tokio = { version = "1.0", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
+log = "0.4"
+env_logger = "0.11"
+dotenv = "0.15"
+tokio-cron-scheduler = "0.10"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+regex = "1.10"
+url = "2.5"
 

@@ -1,0 +1,56 @@
+{
+  "propstream": {
+    "api_key": "YOUR_PROPSTREAM_API_KEY",
+    "max_results_per_run": 1000
+  },
+  "pipedrive": {
+    "api_token": "YOUR_PIPEDRIVE_API_TOKEN",
+    "default_pipeline_id": null,
+    "default_stage_id": null
+  },
+  "database": {
+    "url": "sqlite://propstream_pipedrive.db"
+  },
+  "scheduler": {
+    "enabled": true,
+    "cron_expression": "0 0 9 * * *",
+    "max_leads_per_run": 100
+  },
+  "criteria": {
+    "geographic": {
+      "states": ["NJ", "PA", "DE"],
+      "counties": [
+        "Camden",
+        "Burlington",
+        "Gloucester",
+        "Atlantic",
+        "Cape May",
+        "Philadelphia",
+        "Delaware",
+        "Bucks"
+      ],
+      "exclude_cities": []
+    },
+    "property_types": {
+      "included_types": ["SingleFamily", "MultiFamily", "VacantLand"],
+      "allow_distressed": true,
+      "allow_vacant": true
+    },
+    "owner": {
+      "require_absentee": true,
+      "exclude_llc": true,
+      "exclude_trust": true,
+      "min_ownership_years": 5.0
+    },
+    "financial": {
+      "min_equity_percent": 30.0,
+      "max_equity_percent": 100.0,
+      "min_property_value": null,
+      "max_property_value": null
+    },
+    "timing": {
+      "min_construction_years": 10.0,
+      "max_days_since_last_sale": null
+    }
+  }
+}
