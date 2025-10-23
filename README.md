@@ -1,92 +1,155 @@
-# Claude Code Usage Dashboard
+# PropStream → Pipedrive Integration
 
-A blazing-fast, native analytics dashboard for Claude Code usage built with pure Rust and GPUI.
-
-![Claude Code Usage Dashboard](src/images/Screenshot%202025-07-21%20at%2015.42.34.png)
+Automated real estate lead integration system that pulls qualified property leads from PropStream and syncs them to Pipedrive CRM with intelligent filtering and duplicate detection.
 
 ## 🚀 Quick Start
 
 ```bash
-# Clone and run
-git clone https://github.com/your-username/claude_usage_dashboard_gpui
-cd claude_usage_dashboard_gpui
+# Clone the repository
+git clone https://github.com/your-username/propstream-pipedrive-integration
+cd propstream-pipedrive-integration
+
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env with your API credentials
+
+# Copy and configure settings
+cp config.example.json config.json
+# Edit config.json with your criteria
+
+# Run the application
 cargo run
 ```
 
-The dashboard will automatically discover and analyze usage data from your local data directory.
+The application will start with a monitoring dashboard and begin automated synchronization based on your schedule.
 
 ## ✨ Features
 
-### 📊 Real-Time Analytics
-- **Accurate Cost Tracking**: Precise pricing calculations for all models
-- **Token Analysis**: Input, output, cache read/write breakdowns  
-- **Project Insights**: Resource consumption per project
-- **Session History**: Detailed interaction tracking
-- **Smart Deduplication**: Prevents double-counting of usage entries
+### 🔄 Automated Lead Integration
+- **PropStream Data Extraction**: Pulls properties from specified geographic regions
+- **Intelligent Filtering**: Multi-criteria qualification (equity, ownership, property type)
+- **Pipedrive Synchronization**: Automatic lead creation with custom fields
+- **Duplicate Detection**: SQLite-based tracking prevents duplicate leads
+- **Scheduled Automation**: Cron-based scheduling for hands-free operation
 
-### ⚡ Performance First
-- **Instant Startup**: Loads recent data immediately, processes full dataset in background
-- **Native Speed**: Pure Rust with GPUI - no web technologies
-- **Efficient Processing**: Handles hundreds of data files smoothly
-- **Zero Lag**: Instant tab switching and UI updates
-- **Time Range Filtering**: Lightning-fast time range switching (All Time, Last 30 Days, Last 7 Days)
+### 🎯 Smart Lead Qualification
+- **Geographic Filters**: NJ, PA, DE states with specific county targeting
+- **Property Types**: Single family, multi family, vacant land
+- **Owner Criteria**: Absentee owners, ownership duration, entity filters
+- **Financial Filters**: Equity percentage ranges (30-100%)
+- **Timing Filters**: Construction age, ownership duration minimums
+- **Lead Scoring**: Automatic prioritization based on multiple factors
 
-### 🎯 Dashboard Views
-Navigate with keyboard shortcuts or mouse clicks:
-- **Tab Navigation**: Press 1-5 to switch between views
-- **Time Range Filters**: Alt+1 (All Time), Alt+2 (Last 30 Days), Alt+3 (Last 7 Days)
-- **Overview**: Key metrics and summary cards
-- **Models**: Usage breakdown by AI model with scrollable detailed lists
-- **Projects**: Project-wise resource analysis with scrollable project cards
-- **Sessions**: Individual session tracking with scrollable timeline
-- **Timeline**: Visual usage trends with scrollable daily usage patterns
-
-All views feature smooth scrolling for content that exceeds the viewport, ensuring easy navigation through large datasets.
+### 📊 Monitoring Dashboard
+- **Real-Time Statistics**: Track properties fetched, leads qualified, syncs completed
+- **Connection Status**: Monitor API health for PropStream, Pipedrive, Database
+- **Sync History**: Detailed logs of all integration runs
+- **Quality Metrics**: Qualification rates, sync success rates
+- **Manual Controls**: Run integration on-demand, test connections
 
 ## 🏗️ Architecture
 
-Built from the ground up with clean, modular architecture:
+Built with clean, modular architecture following the 5-phase integration process:
 
 ```
 src/
-├── analytics/           # Data processing engine
-│   ├── models.rs       # Clean data structures
-│   ├── processor.rs    # Data file processing
-│   ├── calculator.rs   # Accurate pricing calculations
-│   └── aggregator.rs   # Data grouping and analysis
-├── app/
-│   ├── views/          # UI views and components
-│   ├── models/         # Application state
-│   └── actions.rs      # User interactions
-├── theme/
-│   ├── colors.rs       # Color system (light/dark themes)
-│   ├── registry.rs     # Theme state management
-│   └── settings.rs     # Theme persistence
-├── ui/
-│   └── formatting.rs   # Display utilities
-└── main.rs            # Application entry point
+├── models/              # Data models
+│   ├── property.rs     # Property data structures
+│   ├── criteria.rs     # Lead qualification criteria
+│   ├── lead.rs         # Qualified lead models
+│   └── stats.rs        # Integration statistics
+├── api/                 # API clients
+│   ├── propstream.rs   # PropStream API integration
+│   └── pipedrive.rs    # Pipedrive API integration
+├── filters/             # Lead qualification
+│   ├── qualifier.rs    # Criteria-based filtering
+│   └── scorer.rs       # Lead scoring engine
+├── db/                  # Database layer
+│   ├── repository.rs   # SQLite operations
+│   └── schema.sql      # Database schema
+├── integration/         # Core integration logic
+│   ├── engine.rs       # Main orchestration
+│   └── sync.rs         # Scheduled synchronization
+├── config/              # Configuration management
+│   └── mod.rs          # Config loading/saving
+├── dashboard/           # UI dashboard
+│   ├── view.rs         # Dashboard interface
+│   └── actions.rs      # User actions
+└── main.rs             # Application entry point
 ```
 
 ### Technology Stack
 - **Rust**: Memory-safe systems programming
 - **GPUI**: Native UI framework from Zed
+- **SQLx**: Type-safe SQL database operations
+- **Reqwest**: HTTP client for API calls
+- **Tokio**: Async runtime
+- **Tokio-Cron-Scheduler**: Job scheduling
 - **Chrono**: Date/time handling
 - **Serde**: JSON serialization
-- **WalkDir**: Efficient file system traversal
 
-## 📈 Performance Metrics
+## 📋 Integration Process
 
-- **Startup**: < 100ms to interactive UI
-- **Processing**: 12,000+ entries processed in seconds
-- **Memory**: Minimal footprint (~50MB)
-- **Rendering**: 60fps smooth scrolling and transitions
+The 5-phase automated integration process:
+
+### Phase 1: Data Extraction
+- Configure PropStream API credentials
+- Set geographic parameters (states, counties)
+- Define property type filters
+- Apply motivated seller criteria
+
+### Phase 2: Lead Qualification
+- Apply absentee owner filters
+- Check equity ranges (30-100%)
+- Validate ownership duration (5+ years)
+- Verify construction age (10+ years)
+- Score leads for prioritization
+
+### Phase 3: Duplicate Detection
+- Check against existing database records
+- Verify against Pipedrive leads
+- Track by property address + owner combination
+- Prevent redundant lead creation
+
+### Phase 4: Pipedrive Synchronization
+- Create person records
+- Create organization records (for LLCs/Trusts)
+- Create deal with custom fields
+- Assign to appropriate pipeline/stage
+
+### Phase 5: Quality Control
+- Validate data completeness
+- Track success/failure rates
+- Log detailed sync history
+- Update integration statistics
+
+## ⚙️ Configuration
+
+### Environment Variables (.env)
+```bash
+PROPSTREAM_API_KEY=your_api_key
+PIPEDRIVE_API_TOKEN=your_token
+DATABASE_URL=sqlite://propstream_pipedrive.db
+SCHEDULER_CRON=0 0 9 * * *  # Daily at 9 AM
+RUST_LOG=info
+```
+
+### Configuration File (config.json)
+See `config.example.json` for complete configuration options including:
+- API credentials
+- Geographic targeting
+- Property type filters
+- Owner qualification criteria
+- Financial thresholds
+- Scheduler settings
 
 ## 🔧 Development
 
 ### Prerequisites
 - Rust 1.75+
 - macOS (GPUI requirement)
-- Usage data in supported format
+- PropStream API access
+- Pipedrive account with API token
 
 ### Build Commands
 ```bash
@@ -106,36 +169,52 @@ cargo fmt
 cargo clippy
 ```
 
-### Data Processing Pipeline
-1. **Discovers data files** in the configured directory
-2. **Parses entries** with intelligent deduplication
-3. **Calculates costs** using accurate pricing models
-4. **Filters noise** - removes zero-token entries
-5. **Aggregates metrics** by model, project, and time
+## 🎯 Lead Criteria (Default Configuration)
+
+### Geographic Targeting
+- **States**: NJ, PA, DE
+- **Counties**: Camden, Burlington, Gloucester, Atlantic, Cape May, Philadelphia, Delaware, Bucks
+
+### Property Requirements
+- **Types**: Single Family, Multi Family, Vacant Land
+- **Construction**: 10+ years old
+- **Distressed**: Allowed
+- **Vacant**: Allowed
+
+### Owner Requirements
+- **Absentee**: Required
+- **Ownership Duration**: 5+ years
+- **Exclude**: LLCs and Trusts
+- **Entity Type**: Individual owners preferred
+
+### Financial Requirements
+- **Equity Range**: 30% - 100%
+- **Property Value**: No minimum/maximum (configurable)
 
 ## 🎯 Design Principles
 
 ### Clean Architecture
 - **Separation of Concerns**: Business logic isolated from UI
-- **Pure Rust**: No external runtime dependencies
 - **Type Safety**: Leverages Rust's type system fully
-- **GPUI Native**: Built for maximum framework efficiency
+- **Error Handling**: Comprehensive error tracking and logging
+- **Async First**: Non-blocking operations throughout
 
-### Performance Optimizations
-- **Smart Loading**: Progressive data loading strategy
-- **Efficient Aggregation**: Single-pass data processing
-- **Memory Efficiency**: Zero-copy where possible
-- **Native Rendering**: GPU-accelerated UI
-- **Smooth Scrolling**: GPUI-native overflow handling for large datasets
+### Data Quality
+- **Duplicate Prevention**: Multi-layer duplicate detection
+- **Validation**: Data quality checks at every stage
+- **Scoring**: Intelligent lead prioritization
+- **Tracking**: Complete audit trail in SQLite database
 
 ## 🚧 Roadmap
 
-- [ ] Real-time data refresh
-- [ ] Advanced filtering options
-- [ ] Data export functionality
-- [ ] Custom date ranges
-- [ ] Trend analysis
-- [ ] Performance metrics
+- [ ] Email notifications for integration results
+- [ ] Advanced filtering with custom rules
+- [ ] Bulk lead import/export
+- [ ] Integration with additional CRMs
+- [ ] API webhook support
+- [ ] Advanced analytics and reporting
+- [ ] Multi-user support
+- [ ] Team assignment automation
 
 ## 🤝 Contributing
 

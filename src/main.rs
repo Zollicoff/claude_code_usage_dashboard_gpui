@@ -1,62 +1,70 @@
-mod analytics;
-mod app;
-mod theme;
-mod ui;
-mod utils;
+mod models;
+mod api;
+mod filters;
+mod db;
+mod config;
+mod integration;
+mod dashboard;
 
 use gpui::*;
-use app::views::root::RootView;
+use log::info;
+
+use config::{AppConfig, default_config_path};
+use dashboard::DashboardView;
 
 fn main() {
-    println!("🎯 Initializing Claude Code Usage Dashboard (GPUI)...");
-    
-    // Initialize GPUI application with proper quit behavior
+    env_logger::init();
+
+    info!("🚀 Starting PropStream to Pipedrive Integration");
+
+    // Initialize GPUI application
     let app = Application::new();
+
     app.run(|cx: &mut App| {
-        println!("🚀 Creating dashboard window...");
-        
-        // Set up window bounds - larger size for dashboard
+        info!("Initializing application window");
+
+        // Load configuration
+        let config_path = default_config_path();
+        let config = match AppConfig::load(&config_path) {
+            Ok(cfg) => cfg,
+            Err(e) => {
+                eprintln!("Failed to load config: {}. Using environment variables.", e);
+                match AppConfig::from_env() {
+                    Ok(cfg) => cfg,
+                    Err(e) => {
+                        eprintln!("Failed to load config from environment: {}", e);
+                        AppConfig::default()
+                    }
+                }
+            }
+        };
+
+        info!("Configuration loaded");
+
+        // Create window bounds
         let bounds = Bounds::centered(None, size(px(1200.0), px(800.0)), cx);
-        
-        // Create the main window with proper window management
-        let window_handle = cx.open_window(
+
+        // Create main window
+        let _window_handle = cx.open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 titlebar: Some(TitlebarOptions {
-                    title: Some("Claude Code Usage Dashboard".into()),
+                    title: Some("PropStream → Pipedrive Integration".into()),
                     appears_transparent: false,
                     traffic_light_position: None,
                 }),
-                // Set window to be focusable and able to become key window
                 is_movable: true,
                 ..Default::default()
             },
             |_window, cx| {
-                cx.new(|cx| RootView::new(cx))
+                cx.new(|cx| DashboardView::new(cx, config))
             }
         )
         .unwrap();
-        
-        // Store window handle for potential reuse
-        let _window_id = window_handle.window_id();
-        
-        // Handle application quit properly - quit when last window closes
-        let _quit_subscription = cx.on_app_quit(|_| async move {
-            println!("🔴 Application quit requested");
-        });
-        
-        // Handle window close events - let the window close normally without quitting
-        // This allows the app to stay in the dock (standard macOS behavior)
-        let _window_close_subscription = cx.on_window_closed(|_closed_window_id| {
-            println!("🪟 Window closed - app remains in dock");
-            // Don't force quit - let macOS handle the app lifecycle
-        });
-        
+
         // Activate the application
         cx.activate(true);
-        
-        // Simple approach: Handle Cmd+Q and window close at the OS level
-        
-        println!("✅ Claude Code Usage Dashboard started successfully!");
+
+        info!("✅ Application started successfully");
     });
 }
