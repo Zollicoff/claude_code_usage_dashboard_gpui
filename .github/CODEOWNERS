@@ -1,0 +1,5 @@
+# Every file in this repo is owned by @Zollicoff.
+# Branch protection uses this list: any PR that touches a path covered
+# here must be approved by a code owner before merge.
+
+* @Zollicoff
